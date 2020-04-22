@@ -44,19 +44,19 @@ class Point():
 """Wczytywanie pomiarowych sondy"""
 def load_sonda(nazwa):
     data = pd.read_csv(nazwa)
-    depth = data['Depth'].to_list()
-    time = data['TimeOffset[ms]'].to_list()
+    depth =np.array(data['Depth'].to_list())
+    time = np.array(data['TimeOffset[ms]'].to_list())
     return depth, time
 
 """Wczytywanie danych pomiarowych GPS"""
 def load_excel(nazwa):
     data = pd.read_excel(nazwa,'Arkusz1',header=None,)
-    numer = rozwiazanie=data[0].to_list()
-    rozwiazanie=data[1].to_list()
-    time = data[2].to_list()
-    Y = data[3].to_list()
-    X = data[4].to_list()
-    H = data[5].to_list()
+    numer = np.array(data[0].to_list())
+    rozwiazanie = np.array(data[1].to_list())
+    time = np.array(data[2].to_list())
+    Y = np.array(data[3].to_list())
+    X = np.array(data[4].to_list())
+    H = np.array(data[5].to_list())
     return numer, rozwiazanie, time, X, Y, H
 
 def load_model(nazwa):
@@ -128,7 +128,7 @@ def save_excel(sciezka,lista):
     }
     df = pd.DataFrame(pkt)
     df.to_excel(sciezka)
-    print("Liczba zapisanych plików: ",len(x))
+    print("Liczba zapisanych punktów: ",len(x))
 
 
 """Obliczenie czasu zerowego na podstawie wybranego soundingu"""
@@ -159,14 +159,12 @@ def printt(lista):
 
 """Wyszukiwanie określonego czasu"""
 def szukac_czasu(lista,czas):
-    index = 0
-    zwrot = 'brak danych'
-    for li in lista:
-        if li.czas == czas:
-            zwrot = index
-            break
-        index += 1
-    return zwrot
+    try:
+        return lista.index(czas)
+    except ValueError:
+        return 'brak danych'
+
+
 
 """Wyszukiwanie indeksu okreslonego punktu"""
 def szukac_index(i,time_gps):
@@ -291,9 +289,13 @@ def laczenie_czasow(sciezka_soun, sciezka_GPS, sciezka_czas, sciezka_para, sciez
         tmp.czas = czas_zerowy_sredni.czas + t/1000
         time_sonda.append(tmp)
     punkty = []
+    time_sonda = np.array(time_sonda)
+
+    timee = [x.czas for x in time_gps]
+
     #Przypisane współrzędneych soundingom
     for ind, i in enumerate(time_sonda):
-        index = szukac_index(i,time_gps)
+        index = szukac_index(i,timee)
         if index != 'brak danych':
             tmp = Point(Nr=numer[index],X=X[index],Y=Y[index], Hel=(H[index] - wys_tyczki - depth[ind]/3.2808), dok = rozwiazanie[index], depth=depth[ind]/3.2808)
             N = interpoluj(tmp.X, tmp.Y, model)

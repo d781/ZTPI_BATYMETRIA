@@ -3,12 +3,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation, TriAnalyzer, UniformTriRefiner
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter)
-
+import datetime
 
 # -*- coding: utf-8 -*-
 
 if __name__ == '__main__':
-
+    t1 = datetime.datetime.now()
     sciezka_modelu = 'dane/model.xlsx'
     katalog = 'dane'
     punkty_all = []
@@ -20,6 +20,10 @@ if __name__ == '__main__':
     print('Liczba punktów: ',len(punkty))
     save_excel('dane_wyjsciowe/PKT.xlsx', punkty)
 
+    s1 = t1.minute * 60 + t1.second + t1.microsecond / (10 ** 6)
+    t2 = datetime.datetime.now()
+    s2 = t2.minute * 60 + t2.second + t2.microsecond / (10 ** 6)
+    print("Czas petli: {:.6f}".format(s2-s1))
 
     # Tworzenie mapy warstwicowej
     x=[]
@@ -54,7 +58,6 @@ if __name__ == '__main__':
     plt.clabel(CS, inline=5, fontsize=8)
     ax.set_ylabel('X[m]')
     ax.set_xlabel('Y[m]')
-    ax.triplot(tri, color='0.7')
     plt.grid()
     plt.savefig('plot.png',dpi=300)
     plt.show()
@@ -79,9 +82,11 @@ if __name__ == '__main__':
     plt.grid()
     plt.savefig('plotHipso.png',dpi=300)
     plt.show()
+
+    #Tworzenie rzutu aksonometrycznego
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.plot_trisurf(x, y, z, linewidth=0.2, antialiased=True)
+    ax.plot_trisurf(x, y, z, linewidth=0.2)
     plt.show()
 
 
