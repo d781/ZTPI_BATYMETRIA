@@ -1,0 +1,4 @@
+Wysokoœc tyczki
+2.000
+Ró¿nica czasu GPS - sonda
+02:00:00
