@@ -1,0 +1,21 @@
+Chart 28_5_15 [0]
+Sounding 2388 07:14:25
+Sounding 5915 07:22:20
+Sounding 8522 07:28:24
+Sounding 12853 07:39:57
+Sounding 220 07:08:47
+Sounding 4750 07:20:24
+Sounding 8659 07:28:55
+Sounding 10966 07:33:50
+Sounding 11941 07:36:36
+Sounding 13893 07:42:19
+
+Chart 28_5_15 [1]
+Sounding 753 10:14:20
+Sounding 7697 10:32:52
+Sounding 10284 10:37:56
+
+Chart 28_5_15 [2]
+Sounding 368 09:24:27
+Sounding 11872 09:55:16
+Sounding 33407 10:42:56

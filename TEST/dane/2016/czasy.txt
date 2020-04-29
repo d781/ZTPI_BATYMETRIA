@@ -1,0 +1,15 @@
+Chart 6_5_16 [0]
+Sounding 501 06:52:54
+Sounding 3299 07:00:10
+Sounding 12814 07:21:38
+Sounding 19586 07:37:46
+Sounding 27040 07:54:39
+Sounding 34821 08:14:53
+
+Chart 6_5_16 [1]
+Sounding 72 08:47:35
+Sounding 5052 08:59:07
+Sounding 15531 09:27:03
+Sounding 20616 09:37:37
+Sounding 28371 09:56:47
+Sounding 37125 10:19:51

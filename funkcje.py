@@ -16,6 +16,9 @@ class Time():
     def __int__(self):
         return self.czas
 
+    def __eq__(self, inny):
+        return self.czas == inny.czas
+
     def __str__(self):
         g = int(self.czas / 3600)
         m = int((self.czas - g * 3600) / 60)
@@ -130,6 +133,17 @@ def save_excel(sciezka,lista):
     df.to_excel(sciezka)
     print("Liczba zapisanych punktów: ",len(x))
 
+"""Zapisanie punktów do pliku"""
+def save_profil(sciezka,lista):
+    pkt = {
+        'X' : lista[:,1],
+        'Y' : lista[:,2],
+        'H_ort' : lista[:,3],
+        'Odleg' : lista[:,0]
+    }
+    df = pd.DataFrame(pkt)
+    df.to_excel(sciezka)
+
 
 """Obliczenie czasu zerowego na podstawie wybranego soundingu"""
 def obl_czas_zerowy(zero, saund):
@@ -163,8 +177,6 @@ def szukac_czasu(lista,czas):
         return lista.index(czas)
     except ValueError:
         return 'brak danych'
-
-
 
 """Wyszukiwanie indeksu okreslonego punktu"""
 def szukac_index(i,time_gps):
@@ -245,7 +257,8 @@ def selekcja(lista,skok):
     return tmp
 
 """Lączenie punktów z sondy z punktami GPS"""
-def laczenie_czasow(sciezka_soun, sciezka_GPS, sciezka_czas, sciezka_para, sciezka_modelu, skok, skok_zapisu):
+def laczenie_czasow(sciezka_soun, sciezka_GPS, sciezka_czas, sciezka_para, sciezka_modelu,
+                    skok, skok_zapisu,przedrostek,sciezka_wyjsciowa,zapis_poszczegolny):
     #Uzyskania nazwy
     nazwa = sciezka_soun.split('/')
     nazwa1 = nazwa[-2]
@@ -289,8 +302,8 @@ def laczenie_czasow(sciezka_soun, sciezka_GPS, sciezka_czas, sciezka_para, sciez
         tmp.czas = czas_zerowy_sredni.czas + t/1000
         time_sonda.append(tmp)
     punkty = []
+    punkty2 = []
     time_sonda = np.array(time_sonda)
-
     timee = [x.czas for x in time_gps]
 
     #Przypisane współrzędneych soundingom
@@ -301,9 +314,58 @@ def laczenie_czasow(sciezka_soun, sciezka_GPS, sciezka_czas, sciezka_para, sciez
             N = interpoluj(tmp.X, tmp.Y, model)
             tmp.H = tmp.Hel - N
             punkty.append(tmp)
+            punkty2.append([X[index],Y[index],tmp.H])
     #Wyświetlenie raportu
     print('Liczba punktów z pomiaru: {}'.format(len(punkty)))
     # Zapis punktów do excela
-    save_excel('dane_wyjsciowe/' + nazwa1 + '_' + nazwa + '.xlsx', selekcja(punkty,skok_zapisu))
+    if zapis_poszczegolny == 't':
+        save_excel(sciezka_wyjsciowa + '/' + przedrostek + nazwa1 + '_' + nazwa + '.xlsx', selekcja(punkty,skok_zapisu))
     print('_' * 50)
-    return  selekcja(punkty,skok)
+    return  selekcja(punkty,skok) , selekcja(punkty2,skok)
+
+#Interpolacja wysokosci
+def odwrotnosc_odleg (model, X, Y, ilosc_pkt, stopien=2):
+    H = np.empty(np.shape(X));
+    for i in range(np.shape(X)[0]):
+        wsp = np.empty([np.shape(model)[0], 4])
+        wsp[:, 0] = model[:,0]
+        wsp[:, 1] = model[:,1]
+        wsp[:, 2] = model[:,2]
+        wsp[:,3] = np.sqrt(( wsp[:,0] - X[i] ) ** 2 + ( wsp[:,1] - Y[i] ) ** 2)
+        wybrane = list(np.sort(wsp[:,3])[0:ilosc_pkt])
+        suma = 0
+        waga = 0
+        for licz in wybrane:
+            w,k = np.where(wsp == licz)
+            suma += wsp[w[0],2] * (1 / (wsp[w[0],3] ** stopien ) )
+            waga += 1 / (wsp[w[0],3] ** stopien )
+        H[i] = suma / waga
+    return  H
+
+#Interpolacja wysokości na przekroju
+def interpolacja_profilu(sciezka_przek,model,odle_na_przek = 1, ilosc_pkt = 5,stopien = 2):
+    tytuly = []
+    przekroje = []
+    with open(sciezka_przek, 'r') as plik:
+        linie = plik.readlines()
+        for i in range(0, len(linie), 3):
+            tytuly.append(linie[i].rstrip().lstrip())
+            tmp = linie[i+1].split()
+            xp = float(tmp[0].lstrip().rstrip())
+            yp = float(tmp[1].lstrip().rstrip())
+            tmp = linie[i+2].split()
+            xk = float(tmp[0].lstrip().rstrip())
+            yk = float(tmp[1].lstrip().rstrip())
+            d = np.sqrt((xk-xp) ** 2 + (yk-yp) ** 2)
+            cosA = (xk-xp)/d
+            sinA = (yk-yp)/d
+            D = np.arange(0,d+odle_na_przek,odle_na_przek)
+            if D[-1] > d:
+                D[-1] = d
+            W = np.empty([len(D),4])
+            W[:, 0] = D
+            W[:, 1] = xp + W[:, 0] * cosA
+            W[:, 2] = yp + W[:, 0] * sinA
+            W[:, 3] = odwrotnosc_odleg(model,W[:, 1],W[:, 2],ilosc_pkt,stopien)
+            przekroje.append(W)
+    return  przekroje, tytuly
